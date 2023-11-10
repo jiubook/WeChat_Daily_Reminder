@@ -8,6 +8,9 @@
 - 四 输出的消息样子以模版为准 想去掉某些东西的话 最简单的方法是去改模板 
 
 
+# 新版成功实例
+![image](https://github.com/jiubook/daily_reminder_JSY/blob/master/others/WechatNewSample.png?raw=true)
+
 # 旧版成功实例
 ![image](https://github.com/jiubook/daily_reminder_JSY/blob/master/others/WechatSample.png?raw=true)
 - 注：现在已经没有彩色字体了，参考以下文章
