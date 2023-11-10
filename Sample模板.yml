@@ -1,0 +1,21 @@
+📌 如何修复因2023-05-04微信推送服务规范整改，导致推送服务异常？ #326
+https://github.com/wangxinleo/wechat-public-account-push/issues/326
+
+🗓️{{NowDate.DATA}}🗓️
+ 
+☁️{{NowRegion_1.DATA}}的天气：{{NowWeather_1.DATA}}
+🌡️{{NowRegion_1.DATA}}的气温：{{NowTemp_1.DATA}} {{WindDir_1.DATA}} 
+🎈{{TempNew_1.DATA}}
+ 
+☁️{{NowRegion_2.DATA}}的天气：{{NowWeather_2.DATA}}
+🌡️{{NowRegion_2.DATA}}的气温：{{NowTemp_2.DATA}} {{WindDir_2.DATA}} 
+🎈{{TempNew_2.DATA}}
+ 
+💞自定义文本💞 
+ 
+🎊{{birthday1.DATA}}
+🎊{{birthday2.DATA}}
+ 
+🎶金山词霸每日金句：
+🐾{{NoteEN_0.DATA}}{{NoteEN_1.DATA}}{{NoteEN_2.DATA}}
+✨{{NoteCH_0.DATA}}{{NoteCH_1.DATA}}{{NoteCH_2.DATA}}
