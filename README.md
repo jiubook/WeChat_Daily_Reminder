@@ -9,10 +9,10 @@
 
 
 # 新版成功实例
-![image](https://github.com/jiubook/daily_reminder_JSY/blob/master/others/WechatNewSample.png?raw=true)
+![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/WechatNewSample.png?raw=true)
 
 # 旧版成功实例
-![image](https://github.com/jiubook/daily_reminder_JSY/blob/master/others/WechatSample.png?raw=true)
+![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/WechatSample.png?raw=true)
 - 注：现在已经没有彩色字体了，参考以下文章
 
 - [GitHub issue: 如何修复因2023-05-04微信推送服务规范整改，导致推送服务异常？ #326](https://github.com/wangxinleo/wechat-public-account-push/issues/326)
@@ -90,18 +90,18 @@
 
 
 # 更改时间的步骤
-![image](https://github.com/jiubook/daily_reminder_JSY/blob/master/others/ChangeTimeSample.png?raw=true)
+![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/ChangeTimeSample.png?raw=true)
 
 
 # 天气key生成教程
-![image](https://github.com/jiubook/daily_reminder_JSY/blob/master/others/HeFengSample.png?raw=true)
+![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/HeFengSample.png?raw=true)
 
 
 # 天行数据
 - 可以申请各种各样的接口用来推送
 
-![image](https://github.com/jiubook/daily_reminder_JSY/blob/master/others/TianXingSample1.png?raw=true)
-![image](https://github.com/jiubook/daily_reminder_JSY/blob/master/others/TianXingSample2.png?raw=true)
+![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/TianXingSample1.png?raw=true)
+![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/TianXingSample2.png?raw=true)
 
 
 # 有别的建议欢迎留言
