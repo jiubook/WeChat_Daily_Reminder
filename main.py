@@ -41,7 +41,7 @@ def get_access_token():
  
 def get_weather(region):
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.113 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     }
     key = config["weather_key"]
     region_url = "https://geoapi.qweather.com/v2/city/lookup?location={}&key={}".format(region, key)
@@ -49,25 +49,46 @@ def get_weather(region):
     print(response)
 
     # 获取地区的location--id
-    location_id = response['location'][0]["id"]
+    try:
+        location_id = response['location'][0]["id"]
+    except:
+        if(region == "上海"):
+            location_id = 101020100
+        if(region == "杨浦区"):
+            location_id = 101021700
+        if(region == "长宁区"):
+            location_id = 101021300
+        if(region == "北京")
+            location_id = 101010100
+        if(region == "朝阳区"):
+            location_id = 101010300
+    
     
     weather_url = "https://devapi.qweather.com/v7/weather/3d?location={}&key={}".format(location_id, key)
-    response = get(weather_url, headers=headers).json()
-    # 天气
-    weather = '清晨'+response['daily'][0]["textDay"]+'，'+'傍晚'+response['daily'][0]["textDay"]
-    # 当前温度
-    temp = response['daily'][0]["tempMin"]+ u"\N{DEGREE SIGN}" + "C"+'~'+response['daily'][0]["tempMax"]+ u"\N{DEGREE SIGN}" + "C"
-    if int(response['daily'][0]["tempMin"]) <= 18:
-        TempNew = "这里天气变凉啦，多穿点衣服哦~"
-    elif int(response['daily'][0]["tempMax"]) >= 35:
-        TempNew = "这里的温度有点高！要多补充补充水分~！"
-    elif int(response['daily'][0]["tempMax"]) >= 25:
-        TempNew = "这里天气有点热哦，注意防晒~"
+    try:
+        response = get(weather_url, headers=headers).json()
+        # 天气
+    except:
+        weather = '唔姆，刮强风把系统吹走啦~'
+        WindDir = '岂可休！'
+        temp = '可恶...温度计也没有留下！'
+        TempNew = '那今天就麻烦宝宝自己看下天气咯...'
     else:
-        TempNew = "这里天气还不错呢！这不出来散步散步~"
-    # 风向
-    WindDir = response['daily'][0]["windDirDay"]
-    return weather, temp, WindDir, TempNew
+        weather = '清晨'+response['daily'][0]["textDay"]+'，'+'傍晚'+response['daily'][0]["textDay"]
+        # 当前温度
+        temp = response['daily'][0]["tempMin"]+ u"\N{DEGREE SIGN}" + "C"+'~'+response['daily'][0]["tempMax"]+ u"\N{DEGREE SIGN}" + "C"
+        if int(response['daily'][0]["tempMin"]) <= 18:
+            TempNew = "天气变凉啦，多穿点衣服哦~"
+        elif int(response['daily'][0]["tempMax"]) >= 35:
+            TempNew = "温度有点高！要多补充补充水分~！"
+        elif int(response['daily'][0]["tempMax"]) >= 25:
+            TempNew = "天气有点热哦，注意防晒~"
+        else:
+            TempNew = "天气还不错呢！这不出来散步散步~"
+        # 风向
+        WindDir = response['daily'][0]["windDirDay"]
+    finally:
+        return weather, temp, WindDir, TempNew
  
 def get_birthday(birthday, year, today):
     birthday_year = birthday.split("-")[0]
@@ -211,7 +232,7 @@ def send_message(to_user, access_token, region_1, weather_1, temp_1, TempNew_1, 
         if birth_day == 0:
             birthday_data = "今天是{}生日！祝{}生日快乐！".format(value["name"], value["name"])
         else:
-            birthday_data = "距离{}下一次生日还有{}天呢！".format(value["name"], birth_day)
+            birthday_data = "距离{}生日还有{}天呢！".format(value["name"], birth_day)
         # 将生日数据插入data
         data["data"][key] = {"value": birthday_data}
     headers = {
@@ -269,27 +290,27 @@ if __name__ == "__main__":
     if NoteCH_0 != "" and NoteEN_0 != "":
         #当有词霸金句有内容时
         #判断中文
-        if len(NoteCH_0) > 40 :
-            NoteCH_2 = NoteCH_0[40:60]
-            NoteCH_1 = NoteCH_0[20:40]
-            NoteCH_0 = NoteCH_0[0:20]
-        elif len(NoteCH_0) > 20 :
+        if len(NoteCH_0) > 30 :
+            NoteCH_2 = NoteCH_0[30:45]
+            NoteCH_1 = NoteCH_0[15:30]
+            NoteCH_0 = NoteCH_0[0:15]
+        elif len(NoteCH_0) > 15 :
             NoteCH_2 = ""
-            NoteCH_1 = NoteCH_0[20:40]
-            NoteCH_0 = NoteCH_0[0:20]
+            NoteCH_1 = NoteCH_0[15:30]
+            NoteCH_0 = NoteCH_0[0:15]
         #判断英文
         Notewords = NoteEN_0.split()
-        if len(Notewords) > 36:
-            for i in range(0,18):
+        if len(Notewords) > 30:
+            for i in range(0,15):
                 NoteEN_0 = NoteEN_0 + Notewords[i] + " "
-            for i in range(18,36):
+            for i in range(15,30):
                 NoteEN_1 = NoteEN_1 + Notewords[i] + " "
-            for i in range(36,len(Notewords)):
+            for i in range(30,len(Notewords)):
                 NoteEN_1 = NoteEN_1 + Notewords[i] + " "
-        elif len(Notewords) > 18:
-            for i in range(0,18):
+        elif len(Notewords) > 15:
+            for i in range(0,15):
                 NoteEN_0 = NoteEN_0 + Notewords[i] + " "
-            for i in range(18,len(Notewords)):
+            for i in range(15,len(Notewords)):
                 NoteEN_1 = NoteEN_1 + Notewords[i] + " "
     # 公众号推送消息
     for user in users:
