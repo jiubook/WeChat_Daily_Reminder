@@ -301,17 +301,20 @@ if __name__ == "__main__":
         #判断英文
         Notewords = NoteEN_0.split()
         if len(Notewords) > 30:
+            NoteEN_0 = ""
             for i in range(0,15):
                 NoteEN_0 = NoteEN_0 + Notewords[i] + " "
             for i in range(15,30):
                 NoteEN_1 = NoteEN_1 + Notewords[i] + " "
             for i in range(30,len(Notewords)):
-                NoteEN_1 = NoteEN_1 + Notewords[i] + " "
+                NoteEN_2 = NoteEN_2 + Notewords[i] + " "
         elif len(Notewords) > 15:
+            NoteEN_0 = ""
             for i in range(0,15):
                 NoteEN_0 = NoteEN_0 + Notewords[i] + " "
             for i in range(15,len(Notewords)):
                 NoteEN_1 = NoteEN_1 + Notewords[i] + " "
+            NoteEN_2 = ""
     # 公众号推送消息
     for user in users:
         send_message(user, accessToken, region_1, weather_1, temp_1, TempNew_1, WindDir_1, region_2, weather_2, temp_2, TempNew_2, WindDir_2, NoteCH_0, NoteCH_1, NoteCH_2, NoteEN_0, NoteEN_1, NoteEN_2)
