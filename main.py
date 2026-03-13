@@ -1,27 +1,11 @@
-import random
 from time import localtime
 from requests import get, post
 from datetime import datetime, date
 from zhdate import ZhDate
 import sys
 import os
-import requests
- 
- 
-#def get_color():
-#    colorArr = ['1','2','3','4','5','6','7','8','9','A','B','C','D','E','F']
-#    color = ""
-#    for i in range(6):
-#        color += colorArr[random.randint(0,14)]
-#    return "\"#"+color+"\""
 
-def get_color():
-    # 获取随机颜色
-    get_colors = lambda n: list(map(lambda i: "#" + "%06x" % random.randint(0, 0xFFFFFF), range(n)))
-    color_list = get_colors(100)
-    return random.choice(color_list)
- 
- 
+
 def get_access_token():
     # appId
     app_id = config["app_id"]
@@ -51,44 +35,51 @@ def get_weather(region):
     # 获取地区的location--id
     try:
         location_id = response['location'][0]["id"]
-    except:
-        if(region == "上海"):
-            location_id = 101020100
-        if(region == "杨浦区"):
-            location_id = 101021700
-        if(region == "长宁区"):
-            location_id = 101021300
-        if(region == "北京")
-            location_id = 101010100
-        if(region == "朝阳区"):
-            location_id = 101010300
+    except (KeyError, IndexError):
+        # 备用城市ID
+        city_ids = {
+            "上海": 101020100,
+            "杨浦区": 101021700,
+            "长宁区": 101021300,
+            "北京": 101010100,
+            "朝阳区": 101010300
+        }
+        location_id = city_ids.get(region, 101010100)  # 默认使用北京ID
     
     
     weather_url = "https://devapi.qweather.com/v7/weather/3d?location={}&key={}".format(location_id, key)
     try:
         response = get(weather_url, headers=headers).json()
         # 天气
-    except:
+        weather = '清晨'+response['daily'][0]["textDay"]+'，'+'傍晚'+response['daily'][0]["textNight"]
+        # 温度范围
+        temp_min = int(response['daily'][0]["tempMin"])
+        temp_max = int(response['daily'][0]["tempMax"])
+        temp = str(temp_min) + u"\N{DEGREE SIGN}" + "C" + '~' + str(temp_max) + u"\N{DEGREE SIGN}" + "C"
+
+        # 优化后的温度提示逻辑
+        if temp_max >= 35:
+            TempNew = "高温预警！记得多喝水，避免中暑~"
+        elif temp_min <= 5:
+            TempNew = "天气很冷！注意保暖，小心感冒哦~"
+        elif temp_max >= 28:
+            TempNew = "天气有点热，注意防晒和补水~"
+        elif temp_min <= 10:
+            TempNew = "天气转凉了，记得添衣保暖~"
+        elif temp_min <= 15:
+            TempNew = "早晚温差大，出门记得带件外套~"
+        else:
+            TempNew = "天气不错呢！适合出门活动~"
+
+        # 风向
+        WindDir = response['daily'][0]["windDirDay"]
+    except (KeyError, IndexError):
         weather = '唔姆，刮强风把系统吹走啦~'
         WindDir = '岂可休！'
         temp = '可恶...温度计也没有留下！'
         TempNew = '那今天就麻烦宝宝自己看下天气咯...'
-    else:
-        weather = '清晨'+response['daily'][0]["textDay"]+'，'+'傍晚'+response['daily'][0]["textDay"]
-        # 当前温度
-        temp = response['daily'][0]["tempMin"]+ u"\N{DEGREE SIGN}" + "C"+'~'+response['daily'][0]["tempMax"]+ u"\N{DEGREE SIGN}" + "C"
-        if int(response['daily'][0]["tempMin"]) <= 18:
-            TempNew = "天气变凉啦，多穿点衣服哦~"
-        elif int(response['daily'][0]["tempMax"]) >= 35:
-            TempNew = "温度有点高！要多补充补充水分~！"
-        elif int(response['daily'][0]["tempMax"]) >= 25:
-            TempNew = "天气有点热哦，注意防晒~"
-        else:
-            TempNew = "天气还不错呢！这不出来散步散步~"
-        # 风向
-        WindDir = response['daily'][0]["windDirDay"]
-    finally:
-        return weather, temp, WindDir, TempNew
+
+    return weather, temp, WindDir, TempNew
  
 def get_birthday(birthday, year, today):
     birthday_year = birthday.split("-")[0]
@@ -117,9 +108,13 @@ def get_birthday(birthday, year, today):
     # 计算生日年份，如果还没过，按当年减，如果过了需要+1
     if today > year_date:
         if birthday_year[0] == "r":
-            # 获取农历明年生日的月和日
-            r_last_birthday = ZhDate((year + 1), r_mouth, r_day).to_datetime().date()
-            birth_date = date((year + 1), r_last_birthday.month, r_last_birthday.day)
+            # 获取农历明年生日对应的公历日期
+            try:
+                birth_date = ZhDate((year + 1), r_mouth, r_day).to_datetime().date()
+            except TypeError:
+                print("请检查生日的日子是否在明年存在")
+                os.system("pause")
+                sys.exit(1)
         else:
             birth_date = date((year + 1), birthday_month, birthday_day)
         birth_day = str(birth_date.__sub__(today)).split(" ")[0]
@@ -262,7 +257,7 @@ if __name__ == "__main__":
         print("推送消息失败，请检查config.txt文件是否与程序位于同一路径")
         os.system("pause")
         sys.exit(1)
-    except SyntaxError:
+    except (SyntaxError, NameError, TypeError):
         print("推送消息失败，请检查配置文件格式是否正确")
         os.system("pause")
         sys.exit(1)

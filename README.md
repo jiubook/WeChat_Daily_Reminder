@@ -1,112 +1,371 @@
-# 前言
-- 一 首先注意编辑文件的时候把浏览器自动翻译关了
+# 微信公众号每日推送使用说明
 
-- 二 运行失败 点开可以看报错原因 自己多试试
+## 📌 项目简介
 
-- 三 不要有任何空格 编辑的时候仔细一点 
+这是一个基于微信公众号的每日消息推送工具，可以自动推送以下内容：
+- 📅 当前日期和星期
+- 🌤️ 两个地区的天气信息（天气状况、温度、风向）
+- 💝 恋爱天数统计
+- 🎂 生日倒计时（支持农历和公历）
+- 📖 每日金句（金山词霸或自定义）
 
-- 四 输出的消息样子以模版为准 想去掉某些东西的话 最简单的方法是去改模板 
-
-
-# 新版成功实例
-![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/WechatNewSample.png?raw=true)
-
-# 旧版成功实例
-![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/WechatSample.png?raw=true)
-- 注：现在已经没有彩色字体了，参考以下文章
-
-- [GitHub issue: 如何修复因2023-05-04微信推送服务规范整改，导致推送服务异常？ #326](https://github.com/wangxinleo/wechat-public-account-push/issues/326)
-
-# 图文教程
-- [酷安链接: 微信公众号消息每日自动推送(纯小白保姆级教程)](https://www.coolapk.com/feed/38579891?shareKey=NGI3ZGZlZTM4MDBjNjMwMzdlM2M)
-
-- *注意不要挂梯子访问*
-
-- 有实在解决不了的问题
-
-- Email: jiubook@qq.com
-
-*本人为二次修改，原作者vx OWI7404*
-
-
-### 微信测试平台
-- (如果自己有公众号的，去后台→左上角三条横线→基本配置。然后就能看到了)
-
-- http://mp.weixin.qq.com/debug/cgi-bin/sandboxinfo?action=showinfo&t=sandbox/index
-
-
-### 和风天气控制台
-- https://id.qweather.com/
-
+支持通过 GitHub Actions 实现每日自动推送，无需服务器。
 
 ---
 
+## ⚠️ 重要提示
 
-# 模板内容
-- (这个可以自由发挥)
-- 参数前面必须加文字或者Emoji
+1. **编辑文件时请关闭浏览器自动翻译功能**
+2. **不要有任何多余的空格，编辑时请仔细检查**
+3. **运行失败时点开可以看报错原因，多尝试几次**
+4. **现在微信已经取消彩色字体，所有消息为黑色**（参考：[微信推送服务规范整改说明](https://github.com/wangxinleo/wechat-public-account-push/issues/326)）
 
->日期：{{NowDate.DATA}}
-> 
->☁️{{NowRegion_1.DATA}}的天气：{{NowWeather_1.DATA}}
->
->🌡️{{NowRegion_1.DATA}}的气温：{{NowTemp_1.DATA}} {{WindDir_1.DATA}} 
->
->温度提示：{{TempNew_1.DATA}}
-> 
->☁️{{NowRegion_2.DATA}}的天气：{{NowWeather_2.DATA}}
->
->🌡️{{NowRegion_2.DATA}}的气温：{{NowTemp_2.DATA}} {{WindDir_2.DATA}} 
->
->温度提示：{{TempNew_2.DATA}}
-> 
->💞自定义文本💞 
->
->今天是我们恋爱的第{{love_day.DATA}}天 
->
->生日1：{{birthday1.DATA}} 
->
->生日2：{{birthday2.DATA}}
->
->每日金句英文：{{NoteEN_0.DATA}}{{NoteEN_1.DATA}}{{NoteEN_2.DATA}}
->
->每日金句中文：{{NoteCH_0.DATA}}{{NoteCH_1.DATA}}{{NoteCH_2.DATA}}
->
+---
 
-# 关于自动运行
-- 目前设定的时间是：早上六点半(6:30 am)
+## 🚀 快速开始
 
-- 记得把\.github\workflows\目录下的weixin.yml.bak
+### 第一步：注册微信公众号测试平台
 
-- 更名为weixin.yml
+1. 访问微信公众平台测试号申请页面：
+   ```
+   https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login
+   ```
 
-- 而后手动运行一次确认成功后即可
+2. 使用微信扫码登录
 
-- *(建议设置提前十分钟 有一定的延迟)*
+3. 登录后你会看到：
+   - **appID**：复制保存
+   - **appsecret**：复制保存
 
-- 有延迟是正常的，如果延迟很大很大，可以参考这篇文章
+4. 在页面下方找到"测试号二维码"，让需要接收消息的人扫码关注
 
-- https://blog.csdn.net/l1937gzjlzy/article/details/117753465
+5. 关注后，在"用户列表"中可以看到 **微信号** （一串字母数字组合，例：oy4Rxxxxxxxxxxxxxxxxx），复制保存
 
+### 第二步：创建消息模板
 
-# 更改时间的步骤
-![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/ChangeTimeSample.png?raw=true)
+1. 在测试号页面找到"模板消息接口"，点击"新增测试模板"
 
+2. 模板标题：随意填写（例如：每日推送、早上好！）
 
-# 天气key生成教程
-![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/HeFengSample.png?raw=true)
+3. 模板内容：复制以下内容（也可以参考项目中的 `Sample模板.yml` 文件）
+   ```
+   🗓️{{NowDate.DATA}}🗓️
 
+   ☁️{{NowRegion_1.DATA}}的天气：{{NowWeather_1.DATA}}
+   🌡️{{NowRegion_1.DATA}}的气温：{{NowTemp_1.DATA}} {{WindDir_1.DATA}}
+   🎈{{TempNew_1.DATA}}
 
-# 天行数据
-- 可以申请各种各样的接口用来推送
+   ☁️{{NowRegion_2.DATA}}的天气：{{NowWeather_2.DATA}}
+   🌡️{{NowRegion_2.DATA}}的气温：{{NowTemp_2.DATA}} {{WindDir_2.DATA}}
+   🎈{{TempNew_2.DATA}}
 
-![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/TianXingSample1.png?raw=true)
-![image](https://github.com/jiubook/Wechat_daily_reminder/blob/main/others/TianXingSample2.png?raw=true)
+   💞自定义文本💞
 
+   🎊{{birthday1.DATA}}
+   🎊{{birthday2.DATA}}
 
-# 有别的建议欢迎留言
-- 建议先发Issue，再发邮箱
+   🎶金山词霸每日金句：
+   🐾{{NoteEN_0.DATA}}{{NoteEN_1.DATA}}{{NoteEN_2.DATA}}
+   ✨{{NoteCH_0.DATA}}{{NoteCH_1.DATA}}{{NoteCH_2.DATA}}
+   ```
 
+4. 提交后，会生成一个 **模板ID** ，复制保存
+
+**注意**：
+- {{参数}}前面必须加文字或者 Emoji
+- 可以根据自己的喜好修改模板内容和样式
+- 如果不需要某些内容，可以直接删除对应行
+
+### 第三步：申请和风天气 API
+
+1. 访问和风天气开发平台：
+   ```
+   https://id.qweather.com/
+   ```
+
+2. 注册并登录账号
+
+3. 进入控制台，选择"项目管理" → "创建项目"
+
+4. 项目类型选择"Web API"，订阅选择"免费订阅"
+
+5. 创建成功后，可以看到 **KEY**（API密钥），复制保存
+
+### 第四步：配置 config.txt 文件
+
+1. 打开项目中的 `config.txt` 文件
+
+2. 按照以下格式填写配置信息：
+
+```python
+{
+# 公众号配置
+# 公众号appId（第一步获取的）
+"app_id": "你的appID",
+# 公众号appSecret（第一步获取的）
+"app_secret": "你的appSecret",
+# 模板消息id（第二步获取的）
+"template_id": "你的模板ID",
+# 接收公众号消息的微信号（第一步获取的），如果有多个，需要在[]里用英文逗号间隔
+"user": ["微信号1", "微信号2"],
+
+# 信息配置
+# 和风天气apikey（第三步获取的）
+"weather_key": "你的和风天气KEY",
+# 所在地区，可为省、城市、区、县，同时支持国外城市，例如伦敦
+"region_1": "北京",
+"region_2": "上海",
+# 生日1，修改名字为对应需要显示的名字，如果生日为农历，在最前面加上r即可
+"birthday1": {"name": "小明", "birthday": "2000-01-01"},
+# 生日2（农历示例）
+"birthday2": {"name": "小红", "birthday": "r2000-12-04"},
+# 在一起的日子，格式同上，暂不支持农历
+"love_date": "2020-01-01",
+# 金句中文，如果设置了，则会显示这里的，如果为空，默认会读取金山的每日金句
+"note_ch": "",
+# 金句英文
+"note_en": ""
+}
+```
+
+**配置说明**：
+- `app_id` 和 `app_secret`：从微信测试号平台获取
+- `template_id`：创建模板后获取的模板ID
+- `user`：接收消息的微信号，可以添加多个
+- `weather_key`：和风天气的API密钥
+- `region_1` 和 `region_2`：两个地区的天气（可以是同一个地区）
+- `birthday1`、`birthday2`：生日信息，农历生日在年份前加 `r`
+- `love_date`：恋爱纪念日
+- `note_ch` 和 `note_en`：自定义金句，留空则自动获取金山词霸每日金句
+
+### 第五步：本地测试运行
+
+1. 确保已安装 Python 3.x
+
+2. 安装依赖包：
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. 运行程序：
+   ```bash
+   python main.py
+   ```
+
+4. 如果配置正确，会显示"推送消息成功"，并且微信会收到消息
+
+---
+
+## 🤖 GitHub Actions 自动推送配置
+
+### 配置步骤
+
+1. **Fork 本项目到你的 GitHub 账号**
+
+2. **修改配置文件**
+   - 在 GitHub 网页上直接编辑 `config.txt` 文件
+   - 填写你的配置信息（参考第四步）
+   - 提交修改
+
+3. **启用 GitHub Actions**
+   - 进入你的仓库，点击 "Actions" 标签
+   - 如果看到提示，点击 "I understand my workflows, go ahead and enable them"
+
+4. **手动运行测试**
+   - 在 Actions 页面，选择 "weixin" 工作流
+   - 点击 "Run workflow" → "Run workflow"
+   - 等待运行完成，检查是否成功
+
+5. **查看运行结果**
+   - 点击运行记录可以查看详细日志
+   - 如果失败，查看错误信息并修改配置
+
+### 修改推送时间
+
+默认推送时间是每天早上 6:30（北京时间）
+
+如果需要修改时间，编辑 `.github/workflows/weixin.yml` 文件：
+
+```yaml
+schedule:
+  - cron: '30 22 * * *'  # 这里是 UTC 时间，北京时间需要 +8 小时
+```
+
+**时间对照表**（UTC → 北京时间）：
+- `30 22 * * *` → 北京时间 6:30
+- `0 23 * * *` → 北京时间 7:00
+- `30 23 * * *` → 北京时间 7:30
+- `0 0 * * *` → 北京时间 8:00
+
+**注意**：
+- GitHub Actions 可能有 10-30 分钟的延迟，这是正常现象
+- 建议设置时间提前 10 分钟
+- 如果延迟很大，可以参考：https://blog.csdn.net/l1937gzjlzy/article/details/117753465
+
+---
+
+## 🔧 最近更新 (2026-03-14)
+
+### 代码优化内容
+
+本次更新对代码进行了全面优化和bug修复，提升了代码质量和用户体验：
+
+#### 1. 移除颜色相关代码
+- 删除了 `get_color()` 函数及相关代码
+- 移除了 `random` 模块依赖
+- **原因**：微信公众号自 2023 年 5 月起已不再支持模板消息的多颜色功能
+
+#### 2. 优化天气温度提示逻辑
+重新设计了温度提示的判断标准，更加科学合理：
+
+| 温度条件 | 提示内容 |
+|---------|---------|
+| 最高温 ≥ 35°C | "高温预警！记得多喝水，避免中暑~" |
+| 最低温 ≤ 5°C | "天气很冷！注意保暖，小心感冒哦~" |
+| 最高温 ≥ 28°C | "天气有点热，注意防晒和补水~" |
+| 最低温 ≤ 10°C | "天气转凉了，记得添衣保暖~" |
+| 最低温 ≤ 15°C | "早晚温差大，出门记得带件外套~" |
+| 其他 | "天气不错呢！适合出门活动~" |
+
+**改进点**：
+- 原标准：18°C 以下提示"变凉"，25°C 以上提示"有点热"
+- 新标准：更符合实际体感温度，增加了极端天气预警
+
+#### 3. 修复语法错误
+- 修复了城市ID查询中的语法错误（缺少冒号）
+- 将多个 `if` 判断重构为字典查找，代码更简洁
+
+#### 4. 修复农历生日计算bug
+- 修复了农历生日跨年计算的逻辑错误
+- 增加了明年农历生日转换的异常处理
+- 确保农历生日能正确转换为公历日期
+
+#### 5. 代码质量改进
+- 移除重复的 `requests` 模块导入
+- 改进异常处理：使用具体异常类型替代裸 `except`
+- 修复天气描述bug：傍晚天气现在正确使用 `textNight` 而非 `textDay`
+- 优化城市ID查询：使用字典映射替代多个 `if` 语句
+
+#### 6. 增强配置文件异常处理
+- 扩展异常捕获范围：`(SyntaxError, NameError, TypeError)`
+- 提供更准确的错误提示信息
+
+### 升级建议
+
+如果你正在使用旧版本，建议更新到最新版本以获得：
+- ✅ 更准确的天气温度提示
+- ✅ 修复的农历生日计算
+- ✅ 更稳定的错误处理
+- ✅ 更清晰的代码结构
+
+**升级方法**：
+1. 备份你的 `config.txt` 文件
+2. 拉取最新代码：`git pull origin main`
+3. 恢复你的 `config.txt` 配置
+4. 重新运行测试
+
+---
+
+## 📝 常见问题
+
+### 1. 推送失败，提示"获取access_token失败"
+- 检查 `app_id` 和 `app_secret` 是否正确
+- 确保没有多余的空格或引号
+
+### 2. 推送失败，提示"推送消息失败，请检查模板id"
+- 检查 `template_id` 是否正确
+- 确保模板已经创建成功
+
+### 3. 推送失败，提示"推送消息失败，请检查微信号"
+- 检查 `user` 中的微信号是否正确
+- 确保用户已经关注了测试号
+
+### 4. 天气信息显示异常
+- 检查 `weather_key` 是否正确
+- 确保和风天气 API 配额未用完（免费版每天 1000 次）
+- 检查地区名称是否正确
+
+### 5. 农历生日不正确
+- 确保生日格式为 `r年-月-日`，例如 `r2000-12-04`
+- 年份前必须加 `r`
+
+### 6. GitHub Actions 不自动运行
+- 检查是否已启用 Actions
+- 检查 `.github/workflows/weixin.yml` 文件是否存在
+- 确保仓库有提交记录（Actions 需要至少一次提交才能触发）
+
+### 7. 消息没有颜色
+- 这是正常的，微信在 2023 年 5 月已经取消了模板消息的彩色字体功能
+- 所有消息现在都是黑色文字
+
+---
+
+## 🎨 自定义模板
+
+你可以根据自己的需求自定义模板内容，以下是可用的参数：
+
+| 参数 | 说明 |
+|------|------|
+| `{{NowDate.DATA}}` | 当前日期和星期 |
+| `{{NowRegion_1.DATA}}` | 地区1名称 |
+| `{{NowWeather_1.DATA}}` | 地区1天气状况 |
+| `{{NowTemp_1.DATA}}` | 地区1温度范围 |
+| `{{WindDir_1.DATA}}` | 地区1风向 |
+| `{{TempNew_1.DATA}}` | 地区1温度提示 |
+| `{{NowRegion_2.DATA}}` | 地区2名称 |
+| `{{NowWeather_2.DATA}}` | 地区2天气状况 |
+| `{{NowTemp_2.DATA}}` | 地区2温度范围 |
+| `{{WindDir_2.DATA}}` | 地区2风向 |
+| `{{TempNew_2.DATA}}` | 地区2温度提示 |
+| `{{LoveDay.DATA}}` | 恋爱天数 |
+| `{{birthday1.DATA}}` | 生日1倒计时 |
+| `{{birthday2.DATA}}` | 生日2倒计时 |
+| `{{NoteEN_0.DATA}}` | 英文金句第1部分 |
+| `{{NoteEN_1.DATA}}` | 英文金句第2部分 |
+| `{{NoteEN_2.DATA}}` | 英文金句第3部分 |
+| `{{NoteCH_0.DATA}}` | 中文金句第1部分 |
+| `{{NoteCH_1.DATA}}` | 中文金句第2部分 |
+| `{{NoteCH_2.DATA}}` | 中文金句第3部分 |
+
+**提示**：
+- 可以添加更多生日，在 `config.txt` 中添加 `birthday3`、`birthday4` 等
+- 模板中也要相应添加 `{{birthday3.DATA}}`、`{{birthday4.DATA}}`
+
+---
+
+## 📧 联系方式
+
+如果遇到无法解决的问题：
+- 优先提交 GitHub Issue
 - Email: jiubook@qq.com
 
-*本人为二次修改，原作者vx OWI7404*
+---
+
+## 🌟 成功示例
+
+配置成功后，你会收到类似这样的消息：
+
+```
+🗓️2024-03-14 周四🗓️
+
+☁️北京的天气：清晨晴，傍晚晴
+🌡️北京的气温：5°C~18°C 西南风
+🎈早晚温差大，出门记得带件外套~
+
+☁️上海的天气：清晨多云，傍晚多云
+🌡️上海的气温：10°C~20°C 东南风
+🎈早晚温差大，出门记得带件外套~
+
+💞自定义文本💞
+
+🎊距离小明生日还有120天呢！
+🎊距离小红生日还有200天呢！
+
+🎶金山词霸每日金句：
+🐾The best time to plant a tree was 20 years ago. The second best time is now.
+✨种一棵树最好的时间是20年前，其次是现在。
+```
+
+---
+
+**祝使用愉快！💝**
