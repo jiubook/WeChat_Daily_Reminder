@@ -17,6 +17,18 @@ FALLBACK_QUOTES = [
     ("心有欢喜，万物皆可期。", "With joy in your heart, everything is worth looking forward to."),
 ]
 
+# 温度提示默认文案，可在 config.txt 里用同名的 temp_tips 覆盖其中任意几条
+# 键名对应关系：hot 最高温>=35 / cold 最低温<=5 / warm 最高温>=28
+#              chill 最低温<=10 / swing 最低温<=15 / nice 其余情况
+DEFAULT_TEMP_TIPS = {
+    "hot": "高温预警！记得多喝水，避免中暑~",
+    "cold": "天气很冷！注意保暖，小心感冒哦~",
+    "warm": "天气有点热，注意防晒和补水~",
+    "chill": "天气转凉了，记得添衣保暖~",
+    "swing": "早晚温差大，出门记得带件外套~",
+    "nice": "天气不错呢！适合出门活动~",
+}
+
 
 def get_access_token():
     # appId
@@ -45,6 +57,14 @@ def get_weather(region):
     WindDir = '岂可休！'
     temp = '可恶...温度计也没有留下！'
     TempNew = '那今天就麻烦宝宝自己看下天气咯...'
+
+    # 温度提示文案，config.txt 里有 temp_tips 时按其覆盖默认文案
+    tips = dict(DEFAULT_TEMP_TIPS)
+    custom_tips = config.get("temp_tips")
+    if isinstance(custom_tips, dict):
+        for tip_key, tip_text in custom_tips.items():
+            if tip_key in tips and isinstance(tip_text, str) and tip_text:
+                tips[tip_key] = tip_text
 
     region_url = "https://geoapi.qweather.com/v2/city/lookup?location={}&key={}".format(region, key)
 
@@ -76,19 +96,19 @@ def get_weather(region):
         temp_max = int(response['daily'][0]["tempMax"])
         temp = str(temp_min) + u"\N{DEGREE SIGN}" + "C" + '~' + str(temp_max) + u"\N{DEGREE SIGN}" + "C"
 
-        # 优化后的温度提示逻辑
+        # 温度提示，按阈值从上到下匹配
         if temp_max >= 35:
-            TempNew = "高温预警！记得多喝水，避免中暑~"
+            TempNew = tips["hot"]
         elif temp_min <= 5:
-            TempNew = "天气很冷！注意保暖，小心感冒哦~"
+            TempNew = tips["cold"]
         elif temp_max >= 28:
-            TempNew = "天气有点热，注意防晒和补水~"
+            TempNew = tips["warm"]
         elif temp_min <= 10:
-            TempNew = "天气转凉了，记得添衣保暖~"
+            TempNew = tips["chill"]
         elif temp_min <= 15:
-            TempNew = "早晚温差大，出门记得带件外套~"
+            TempNew = tips["swing"]
         else:
-            TempNew = "天气不错呢！适合出门活动~"
+            TempNew = tips["nice"]
 
         # 风向
         WindDir = response['daily'][0]["windDirDay"]
