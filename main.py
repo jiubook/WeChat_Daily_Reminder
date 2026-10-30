@@ -1,9 +1,21 @@
+import random
 from time import localtime
 from requests import get, post
 from datetime import datetime, date
 from zhdate import ZhDate
 import sys
 import os
+
+
+# 金句兜底数据：所有在线接口都拿不到时使用，保证推送流程不会因为金句接口挂掉而中断
+FALLBACK_QUOTES = [
+    ("山海自有归期，风雨自有相逢。", "The mountains and seas have their return, and wind and rain have their reunion."),
+    ("生活明朗，万物可爱。", "Life is bright and everything is lovely."),
+    ("愿你出走半生，归来仍是少年。", "May you come back still young after half a lifetime of wandering."),
+    ("大船寻深水而航行。", "A great ship asks for deep waters."),
+    ("万事开头难。", "Everything is hard before it is easy."),
+    ("心有欢喜，万物皆可期。", "With joy in your heart, everything is worth looking forward to."),
+]
 
 
 def get_access_token():
@@ -28,14 +40,21 @@ def get_weather(region):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     }
     key = config["weather_key"]
+    # 天气接口挂掉时使用的兜底文案
+    weather = '唔姆，刮强风把系统吹走啦~'
+    WindDir = '岂可休！'
+    temp = '可恶...温度计也没有留下！'
+    TempNew = '那今天就麻烦宝宝自己看下天气咯...'
+
     region_url = "https://geoapi.qweather.com/v2/city/lookup?location={}&key={}".format(region, key)
-    response = get(region_url, headers=headers).json()
-    print(response)
 
     # 获取地区的location--id
     try:
+        response = get(region_url, headers=headers, timeout=10).json()
+        print(response)
         location_id = response['location'][0]["id"]
-    except (KeyError, IndexError):
+    except Exception as e:
+        print("地区查询失败（{}）：{}".format(region, e))
         # 备用城市ID
         city_ids = {
             "上海": 101020100,
@@ -49,7 +68,7 @@ def get_weather(region):
     
     weather_url = "https://devapi.qweather.com/v7/weather/3d?location={}&key={}".format(location_id, key)
     try:
-        response = get(weather_url, headers=headers).json()
+        response = get(weather_url, headers=headers, timeout=10).json()
         # 天气
         weather = '清晨'+response['daily'][0]["textDay"]+'，'+'傍晚'+response['daily'][0]["textNight"]
         # 温度范围
@@ -73,7 +92,9 @@ def get_weather(region):
 
         # 风向
         WindDir = response['daily'][0]["windDirDay"]
-    except (KeyError, IndexError):
+    except Exception as e:
+        # 网络异常、返回码不是 200、字段缺失等，统一用兜底文案，不让 Action 失败
+        print("天气查询失败（{}）：{}".format(region, e))
         weather = '唔姆，刮强风把系统吹走啦~'
         WindDir = '岂可休！'
         temp = '可恶...温度计也没有留下！'
@@ -126,16 +147,72 @@ def get_birthday(birthday, year, today):
     return birth_day
  
  
-def get_ciba():
-    url = "http://open.iciba.com/dsapi/"
+def _get_json(url, timeout=10):
+    # 请求接口并解析 JSON，任何异常都不外抛（失败返回 None），避免整个 Action 挂掉
     headers = {
         'Content-Type': 'application/json',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
                       'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36'
     }
-    r = get(url, headers=headers)
-    NoteEN_0 = r.json()["content"]
-    NoteCH_0 = r.json()["note"]
+    try:
+        r = get(url, headers=headers, timeout=timeout)
+        if r.status_code != 200:
+            print("接口返回异常状态码 {}：{}".format(r.status_code, url))
+            return None
+        return r.json()
+    except Exception as e:
+        print("接口访问失败（{}）：{}".format(url, e))
+        return None
+
+
+def split_note(text, limit, max_parts=3):
+    # 模板里金句有 3 个位置，这里把长句按标点切成不超过 limit 个字的若干段，
+    # 避免出现只有标点的碎片（例如单独一个“。”），也避免按字数硬切把句子切断
+    text = (text or "").strip()
+    parts = []
+    while text and len(parts) < max_parts:
+        if len(text) <= limit:
+            parts.append(text)
+            break
+        cut = -1
+        for punct in ("，", "。", "！", "？", "；", "、", ",", ".", "!", "?", ";", " "):
+            idx = text.rfind(punct, 0, limit + 1)
+            if idx > cut:
+                cut = idx
+        if cut <= 0:
+            cut = limit - 1
+        parts.append(text[:cut + 1].strip())
+        text = text[cut + 1:].strip()
+    while len(parts) < max_parts:
+        parts.append("")
+    return parts[0], parts[1], parts[2]
+
+
+def get_ciba():
+    # 获取每日金句。金山词霸的 open.iciba.com/dsapi 已经基本不可用
+    #（http 会 301 到 https，https 端被 WAF 挂住或返回非 JSON 内容），
+    # 原来直接 r.json() 会抛 JSONDecodeError 导致 Action 失败，
+    # 所以这里改成多源尝试 + 内置金句兜底。
+    # 1、金山词霸原接口，先留着，万一哪天恢复了还能用
+    data = _get_json("https://open.iciba.com/dsapi/", timeout=5)
+    if isinstance(data, dict) and data.get("note") and data.get("content"):
+        return data["note"], data["content"]
+
+    NoteCH_0 = ""
+    NoteEN_0 = ""
+    # 2、中文金句：一言
+    data = _get_json("https://v1.hitokoto.cn/?encode=json&charset=utf-8&min_length=6&max_length=30")
+    if isinstance(data, dict):
+        NoteCH_0 = (data.get("hitokoto") or "").strip()
+    # 3、英文金句：ZenQuotes
+    data = _get_json("https://zenquotes.io/api/random")
+    if isinstance(data, list) and data and isinstance(data[0], dict):
+        NoteEN_0 = (data[0].get("q") or "").strip()
+    # 4、还是拿不到就用内置金句兜底
+    if not NoteCH_0 or not NoteEN_0:
+        fallback_ch, fallback_en = random.choice(FALLBACK_QUOTES)
+        NoteCH_0 = NoteCH_0 or fallback_ch
+        NoteEN_0 = NoteEN_0 or fallback_en
     return NoteCH_0, NoteEN_0
  
  
@@ -235,17 +312,25 @@ def send_message(to_user, access_token, region_1, weather_1, temp_1, TempNew_1, 
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
                       'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36'
     }
-    response = post(url, headers=headers, json=data).json()
-    if response["errcode"] == 40037:
+    try:
+        response = post(url, headers=headers, json=data, timeout=10).json()
+    except Exception as e:
+        # 微信接口返回的不是 JSON（例如网关错误页）时，只打印错误，不让 Action 失败
+        print("推送消息失败：{}".format(e))
+        print(data)
+        return
+    errcode = response.get("errcode") if isinstance(response, dict) else None
+    if errcode == 40037:
         print("推送消息失败，请检查模板id是否正确")
-    elif response["errcode"] == 40036:
+    elif errcode == 40036:
         print("推送消息失败，请检查模板id是否为空")
-    elif response["errcode"] == 40003:
+    elif errcode == 40003:
         print("推送消息失败，请检查微信号是否正确")
-    elif response["errcode"] == 0:
+    elif errcode == 0:
         print("推送消息成功")
         print(data)
     else:
+        print("推送消息失败，返回内容：{}".format(response))
         print(data)
  
  
@@ -280,36 +365,12 @@ if __name__ == "__main__":
     NoteCH_2 = ""
     NoteEN_2 = ""
     if NoteCH_0 == "" and NoteEN_0 == "":
-        # 获取词霸每日金句
+        # 获取每日金句（多源尝试 + 本地兜底，接口挂掉也不会让 Action 失败）
         NoteCH_0, NoteEN_0 = get_ciba()
     if NoteCH_0 != "" and NoteEN_0 != "":
-        #当有词霸金句有内容时
-        #判断中文
-        if len(NoteCH_0) > 30 :
-            NoteCH_2 = NoteCH_0[30:45]
-            NoteCH_1 = NoteCH_0[15:30]
-            NoteCH_0 = NoteCH_0[0:15]
-        elif len(NoteCH_0) > 15 :
-            NoteCH_2 = ""
-            NoteCH_1 = NoteCH_0[15:30]
-            NoteCH_0 = NoteCH_0[0:15]
-        #判断英文
-        Notewords = NoteEN_0.split()
-        if len(Notewords) > 30:
-            NoteEN_0 = ""
-            for i in range(0,15):
-                NoteEN_0 = NoteEN_0 + Notewords[i] + " "
-            for i in range(15,30):
-                NoteEN_1 = NoteEN_1 + Notewords[i] + " "
-            for i in range(30,len(Notewords)):
-                NoteEN_2 = NoteEN_2 + Notewords[i] + " "
-        elif len(Notewords) > 15:
-            NoteEN_0 = ""
-            for i in range(0,15):
-                NoteEN_0 = NoteEN_0 + Notewords[i] + " "
-            for i in range(15,len(Notewords)):
-                NoteEN_1 = NoteEN_1 + Notewords[i] + " "
-            NoteEN_2 = ""
+        #当有金句内容时，按标点切成 3 段分别填到模板的 3 个位置
+        NoteCH_0, NoteCH_1, NoteCH_2 = split_note(NoteCH_0, 15)
+        NoteEN_0, NoteEN_1, NoteEN_2 = split_note(NoteEN_0, 45)
     # 公众号推送消息
     for user in users:
         send_message(user, accessToken, region_1, weather_1, temp_1, TempNew_1, WindDir_1, region_2, weather_2, temp_2, TempNew_2, WindDir_2, NoteCH_0, NoteCH_1, NoteCH_2, NoteEN_0, NoteEN_1, NoteEN_2)
