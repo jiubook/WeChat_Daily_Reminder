@@ -173,16 +173,26 @@
    - 填写你的配置信息（参考第四步）
    - 提交修改
 
-3. **启用 GitHub Actions**
+3. **启用工作流文件**
+   - 本仓库的 workflow 以 `.github/workflows/weixin.yml.bak` 的形式提供，
+     避免模板仓库自身每天执行定时任务
+   - 在你的仓库里把它重命名为 `.github/workflows/weixin.yml`：
+     ```bash
+     git mv .github/workflows/weixin.yml.bak .github/workflows/weixin.yml
+     git commit -m "ci: enable weixin workflow"
+     git push
+     ```
+
+4. **启用 GitHub Actions**
    - 进入你的仓库，点击 "Actions" 标签
    - 如果看到提示，点击 "I understand my workflows, go ahead and enable them"
 
-4. **手动运行测试**
+5. **手动运行测试**
    - 在 Actions 页面，选择 "weixin" 工作流
    - 点击 "Run workflow" → "Run workflow"
    - 等待运行完成，检查是否成功
 
-5. **查看运行结果**
+6. **查看运行结果**
    - 点击运行记录可以查看详细日志
    - 如果失败，查看错误信息并修改配置
 
