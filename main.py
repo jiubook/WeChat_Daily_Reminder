@@ -185,9 +185,12 @@ def _get_json(url, timeout=10):
         return None
 
 
-def split_note(text, limit, max_parts=3):
+def split_note(text, limit, max_parts=3, joiner=""):
     # 模板里金句有 3 个位置，这里把长句按标点切成不超过 limit 个字的若干段，
-    # 避免出现只有标点的碎片（例如单独一个“。”），也避免按字数硬切把句子切断
+    # 避免出现只有标点的碎片（例如单独一个“。”），也避免按字数硬切把句子切断。
+    # joiner：模板里三段是紧挨着渲染的（{{NoteEN_0.DATA}}{{NoteEN_1.DATA}}{{NoteEN_2.DATA}}），
+    # 中文不需要分隔符，但英文是按单词拆分的、单词与单词之间必须有空格，
+    # 所以英文传 joiner=" "，给第 2、3 段前面补一个空格；中文传默认空串即可。
     text = (text or "").strip()
     parts = []
     while text and len(parts) < max_parts:
@@ -205,6 +208,11 @@ def split_note(text, limit, max_parts=3):
         text = text[cut + 1:].strip()
     while len(parts) < max_parts:
         parts.append("")
+    # 切分时 strip() 把断点处的空格吃掉了，这里给第 2、3 段补回去（空段不补，
+    # 避免金句只有一段时凭空多出空格）
+    for i in range(1, len(parts)):
+        if parts[i]:
+            parts[i] = joiner + parts[i]
     return parts[0], parts[1], parts[2]
 
 
@@ -389,8 +397,9 @@ if __name__ == "__main__":
         NoteCH_0, NoteEN_0 = get_ciba()
     if NoteCH_0 != "" and NoteEN_0 != "":
         #当有金句内容时，按标点切成 3 段分别填到模板的 3 个位置
+        #中文段与段之间直接用标点衔接，不需要空格；英文按单词拆分，必须补空格
         NoteCH_0, NoteCH_1, NoteCH_2 = split_note(NoteCH_0, 15)
-        NoteEN_0, NoteEN_1, NoteEN_2 = split_note(NoteEN_0, 45)
+        NoteEN_0, NoteEN_1, NoteEN_2 = split_note(NoteEN_0, 45, joiner=" ")
     # 公众号推送消息
     for user in users:
         send_message(user, accessToken, region_1, weather_1, temp_1, TempNew_1, WindDir_1, region_2, weather_2, temp_2, TempNew_2, WindDir_2, NoteCH_0, NoteCH_1, NoteCH_2, NoteEN_0, NoteEN_1, NoteEN_2)
