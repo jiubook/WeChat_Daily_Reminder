@@ -1,3 +1,4 @@
+import ast
 import random
 from time import localtime
 from requests import get, post
@@ -365,12 +366,12 @@ def send_message(to_user, access_token, region_1, weather_1, temp_1, TempNew_1, 
 if __name__ == "__main__":
     try:
         with open("config.txt", encoding="utf-8") as f:
-            config = eval(f.read())
+            config = ast.literal_eval(f.read())
     except FileNotFoundError:
         print("推送消息失败，请检查config.txt文件是否与程序位于同一路径")
         os.system("pause")
         sys.exit(1)
-    except (SyntaxError, NameError, TypeError):
+    except (SyntaxError, ValueError, TypeError):
         print("推送消息失败，请检查配置文件格式是否正确")
         os.system("pause")
         sys.exit(1)
